@@ -26,3 +26,4 @@ server/sandbox/.cursor*
 .next
 *.tsbuildinfo
 npm-debug.log*
+.idea/
