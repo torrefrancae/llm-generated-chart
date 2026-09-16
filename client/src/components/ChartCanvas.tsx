@@ -13,10 +13,14 @@ export default function ChartCanvas({ payload, busy = false, refining = false }:
   if (!payload) {
     return (
       <div className={styles.empty} aria-live="polite">
-        <p className={styles.kicker}>Live canvas</p>
-        <h2>Use the prompt dock below</h2>
-        <p>Describe a chart type. Dummy data paints immediately.</p>
-        {busy ? <div className={styles.loader} aria-label="Generating chart" /> : null}
+        <p className={styles.kicker}>{busy ? 'Loading' : 'Live canvas'}</p>
+        <h2>{busy ? 'Preparing chart data...' : 'Use the prompt dock below'}</h2>
+        <p>
+          {busy
+            ? 'Hang tight while dummy series are built for this chart type.'
+            : 'Describe a chart type. Dummy data paints as soon as it is ready.'}
+        </p>
+        {busy ? <div className={styles.loader} aria-label="Loading chart data" /> : null}
       </div>
     );
   }

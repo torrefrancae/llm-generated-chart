@@ -9,6 +9,7 @@ import {
   buildPayloadFromParams,
   DEFAULT_ECHART,
   DEFAULT_SOLAR,
+  payloadHasData,
   type EchartParams,
   type SolarParams,
   type StudioKind,
@@ -25,13 +26,16 @@ export default function Studio() {
   const [status, setStatus] = React.useState(
     'Ask for a solar system, bar chart, donut, radar, or any other style. The right panel follows that chart.'
   );
+  const [waiting, setWaiting] = React.useState(false);
   const [refining, setRefining] = React.useState(false);
   const [payload, setPayload] = React.useState<ChartPayload | null>(null);
   const requestId = React.useRef(0);
 
   React.useEffect(() => {
     if (kind === 'solar') return;
-    setPayload(buildPayloadFromParams(kind, echart, topic));
+    const next = buildPayloadFromParams(kind, echart, topic);
+    setPayload(next);
+    setWaiting(false);
   }, [kind, echart, topic]);
 
   const applyPrompt = React.useCallback(
@@ -41,40 +45,65 @@ export default function Studio() {
 
       const local = applyStudioPrompt(text, { kind, solar, echart });
       const id = ++requestId.current;
+      setPrompt('');
+      setWaiting(local.kind !== 'solar');
+      setRefining(false);
       setKind(local.kind);
       setSolar(local.solar);
       setEchart(local.echart);
       setTopic(local.topic);
-      setPrompt('');
 
       if (local.kind === 'solar') {
-        setRefining(false);
+        setPayload(null);
+        setWaiting(false);
         setStatus(`${local.summary} Ready now.`);
         return;
       }
 
-      /* Local dummy chart paints immediately. Agent polish is optional and silent on the canvas. */
-      setPayload(buildPayloadFromParams(local.kind, local.echart, local.topic));
-      setStatus(`${local.summary} Dummy data is ready. Optional agent polish may follow.`);
-      setRefining(true);
+      const localPayload = buildPayloadFromParams(local.kind, local.echart, local.topic);
+      setPayload(localPayload);
+      setWaiting(false);
+      setStatus(
+        payloadHasData(localPayload)
+          ? `${local.summary} Dummy data is ready.`
+          : 'Preparing chart data...'
+      );
 
+      if (!payloadHasData(localPayload)) {
+        setWaiting(true);
+      }
+
+      setRefining(true);
       try {
         const next = await generateChart(text, []);
         if (id !== requestId.current) return;
-        setPayload(next);
-        setKind(next.chartType);
-        setStatus(`${next.reply} Agent polish applied.`);
+        if (payloadHasData(next)) {
+          setPayload(next);
+          setKind(next.chartType);
+          setWaiting(false);
+          setStatus(`${next.reply} Agent polish applied.`);
+        } else {
+          setStatus(`${local.summary} Keeping local dummy data.`);
+        }
       } catch {
         if (id !== requestId.current) return;
-        if (isChartTypeId(local.kind)) {
+        if (payloadHasData(localPayload)) {
           setStatus(`${local.summary} Showing local dummy data.`);
+        } else if (isChartTypeId(local.kind)) {
+          setWaiting(true);
+          setStatus('Still preparing chart data...');
         }
       } finally {
-        if (id === requestId.current) setRefining(false);
+        if (id === requestId.current) {
+          setRefining(false);
+          if (payloadHasData(localPayload) || payloadHasData(payload)) setWaiting(false);
+        }
       }
     },
-    [kind, solar, echart]
+    [kind, solar, echart, payload]
   );
+
+  const showLoader = waiting || (kind !== 'solar' && !payloadHasData(payload));
 
   return (
     <div className={styles.shell}>
@@ -90,7 +119,11 @@ export default function Studio() {
           {kind === 'solar' ? (
             <SolarSystemChart params={solar} />
           ) : (
-            <ChartCanvas payload={payload} busy={false} refining={refining} />
+            <ChartCanvas
+              payload={payloadHasData(payload) ? payload : null}
+              busy={showLoader}
+              refining={refining && payloadHasData(payload)}
+            />
           )}
         </div>
 
@@ -109,13 +142,14 @@ export default function Studio() {
           onPresetSolar={(next, label) => {
             setKind('solar');
             setSolar(next);
+            setWaiting(false);
             setStatus(`${label} loaded.`);
           }}
         />
 
         <PromptDock
           value={prompt}
-          busy={false}
+          busy={waiting}
           placeholder="Ask for a chart, e.g. stacked bar of Q3 sales, or solar system with 10 fast planets"
           submitLabel="Generate"
           samples={STUDIO_PROMPT_SAMPLES}

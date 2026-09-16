@@ -18,6 +18,7 @@ export type PromptApplyResult = {
 };
 
 export const STUDIO_PROMPT_SAMPLES = [
+  'Candlestick chart of 12 trading sessions',
   'Solar system with 12 fast planets and trails',
   'Stacked bar chart of Q3 product lines',
   'Donut chart of weekend traffic sources',

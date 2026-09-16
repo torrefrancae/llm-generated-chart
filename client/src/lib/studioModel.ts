@@ -54,12 +54,29 @@ function cats(n: number): string[] {
   return names.slice(0, Math.max(2, Math.min(12, n)));
 }
 
+function sessionLabels(n: number): string[] {
+  return Array.from({ length: Math.max(2, Math.min(12, n)) }, (_, i) => `S${i + 1}`);
+}
+
 function series(count: number, points: number): Array<{ name: string; data: number[] }> {
   const labels = ['North', 'South', 'East', 'West', 'Core'];
   return Array.from({ length: Math.max(1, Math.min(5, count)) }, (_, s) => ({
     name: labels[s] || `Series ${s + 1}`,
     data: Array.from({ length: points }, (_, i) => Math.round(18 + ((s + 1) * 11 + i * 7) % 57)),
   }));
+}
+
+function buildOhlc(n: number) {
+  let price = 100;
+  return sessionLabels(n).map((date, i) => {
+    const open = price;
+    const drift = ((i % 3) - 1) * 5 + (i % 2 === 0 ? 7 : -6);
+    const close = Math.max(24, open + drift);
+    const low = Math.min(open, close) - 4 - (i % 3);
+    const high = Math.max(open, close) + 4 + (i % 4);
+    price = close;
+    return { date, open, close, low, high };
+  });
 }
 
 export function resolveChartType(kind: ChartTypeId, params: EchartParams): ChartTypeId {
@@ -79,6 +96,21 @@ export function resolveChartType(kind: ChartTypeId, params: EchartParams): Chart
   return kind;
 }
 
+export function payloadHasData(payload: ChartPayload | null): boolean {
+  if (!payload) return false;
+  const t = payload.chartType;
+  if (t === 'candlestick') return Boolean(payload.ohlc?.length);
+  if (['pie', 'donut', 'rose', 'treemap', 'sunburst', 'funnel'].includes(t)) {
+    return Boolean(payload.slices?.length);
+  }
+  if (t === 'scatter' || t === 'bubble') return Boolean(payload.pairs?.length);
+  if (t === 'gauge') return payload.value !== undefined;
+  if (t === 'sankey' || t === 'graph') {
+    return Boolean(payload.nodes?.length && payload.links?.length);
+  }
+  return Boolean(payload.series?.length || payload.categories?.length);
+}
+
 export function buildPayloadFromParams(
   kind: ChartTypeId,
   params: EchartParams,
@@ -93,6 +125,45 @@ export function buildPayloadFromParams(
   }));
 
   const flags = { showLegend: params.showLegend, showLabels: params.showLabels };
+
+  if (chartType === 'candlestick') {
+    return {
+      reply: 'Updated candlestick from parameters.',
+      chartType,
+      title: params.title || `${topic} sessions`,
+      subtitle: 'Live parameter preview',
+      ohlc: buildOhlc(params.categoryCount),
+      ...flags,
+    };
+  }
+
+  if (chartType === 'boxplot') {
+    return {
+      reply: 'Updated box plot from parameters.',
+      chartType,
+      title: params.title || `${topic} spread`,
+      categories,
+      series: categories.map((name, i) => ({
+        name,
+        data: [8 + i, 14 + i, 20 + i, 28 + i, 36 + i],
+      })),
+      ...flags,
+    };
+  }
+
+  if (chartType === 'heatmap' || chartType === 'calendar-heatmap') {
+    return {
+      reply: `Updated ${chartType} from parameters.`,
+      chartType,
+      title: params.title || `${topic} intensity`,
+      categories,
+      series: rows.map((row) => ({
+        ...row,
+        data: row.data.map((v, i) => v + i * 2),
+      })),
+      ...flags,
+    };
+  }
 
   if (['pie', 'donut', 'rose', 'treemap', 'sunburst', 'funnel'].includes(chartType)) {
     return {
@@ -162,6 +233,7 @@ export function detectStudioKind(text: string): StudioKind | null {
       return item.id;
     }
   }
+  if (/\bcandle|\bohlc\b|\btrading sessions?\b/.test(t)) return 'candlestick';
   if (/\bbar\b/.test(t)) return 'bar';
   if (/\bline\b/.test(t)) return 'line';
   if (/\bpie\b/.test(t)) return 'pie';
