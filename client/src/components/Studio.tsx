@@ -1,177 +1,118 @@
-import AiChartParams from '@/components/AiChartParams';
 import ChartCanvas from '@/components/ChartCanvas';
+import DynamicParams from '@/components/DynamicParams';
 import PromptDock from '@/components/PromptDock';
-import SolarControls from '@/components/SolarControls';
 import SolarSystemChart from '@/components/SolarSystemChart';
-import { generateChart, type ChartPayload, type ChatTurn } from '@/lib/api';
+import { generateChart, type ChartPayload } from '@/lib/api';
+import { applyStudioPrompt, STUDIO_PROMPT_SAMPLES } from '@/lib/applyStudioPrompt';
 import { demoPayload } from '@/lib/demoPayload';
 import { isChartTypeId } from '@/lib/chartTypes';
-import { parseSolarPrompt, SOLAR_PROMPT_SAMPLES } from '@/lib/parseSolarPrompt';
-import { DEFAULT_SOLAR, type SolarParams } from '@/lib/solarSystem';
+import {
+  buildPayloadFromParams,
+  DEFAULT_ECHART,
+  DEFAULT_SOLAR,
+  type EchartParams,
+  type SolarParams,
+  type StudioKind,
+} from '@/lib/studioModel';
 import styles from '@/components/Studio.module.css';
 import React from 'react';
 
-type Stage = 'solar' | 'ai';
-
-const AI_SAMPLES = [
-  'Stacked bar of Q3 product lines',
-  'Radar of team skills',
-  'Funnel from lead to paid',
-  'Donut of weekend traffic sources',
-];
-
 export default function Studio() {
-  const [stage, setStage] = React.useState<Stage>('solar');
+  const [kind, setKind] = React.useState<StudioKind>('solar');
   const [solar, setSolar] = React.useState<SolarParams>(DEFAULT_SOLAR);
-  const [solarPrompt, setSolarPrompt] = React.useState('');
-  const [solarStatus, setSolarStatus] = React.useState(
-    'Solar lab ready. Use a sample prompt or type your own to reshape the system.'
+  const [echart, setEchart] = React.useState<EchartParams>(DEFAULT_ECHART);
+  const [topic, setTopic] = React.useState('sample market');
+  const [prompt, setPrompt] = React.useState('');
+  const [status, setStatus] = React.useState(
+    'Ask for a solar system, bar chart, donut, radar, or any other style. The right panel follows that chart.'
   );
-  const [aiPrompt, setAiPrompt] = React.useState('');
   const [busy, setBusy] = React.useState(false);
-  const [aiStatus, setAiStatus] = React.useState('Pick a chart type or write a prompt below.');
   const [payload, setPayload] = React.useState<ChartPayload | null>(null);
-  const [thread, setThread] = React.useState<ChatTurn[]>([]);
   const lock = React.useRef(false);
 
-  const applySolarPrompt = React.useCallback(
-    (raw: string) => {
-      const text = raw.trim();
-      if (!text) return;
-      const result = parseSolarPrompt(text, solar);
-      setSolar(result.params);
-      setSolarStatus(result.summary);
-      setSolarPrompt('');
-    },
-    [solar]
-  );
+  React.useEffect(() => {
+    if (kind === 'solar') return;
+    setPayload(buildPayloadFromParams(kind, echart, topic));
+  }, [kind, echart, topic]);
 
-  const runAi = React.useCallback(
-    async (message: string) => {
-      const text = message.trim();
+  const applyPrompt = React.useCallback(
+    async (raw: string) => {
+      const text = raw.trim();
       if (!text || lock.current) return;
+      const local = applyStudioPrompt(text, { kind, solar, echart });
+      setKind(local.kind);
+      setSolar(local.solar);
+      setEchart(local.echart);
+      setTopic(local.topic);
+      setStatus(local.summary);
+      setPrompt('');
+
+      if (local.kind === 'solar') return;
+
       lock.current = true;
       setBusy(true);
-      setAiStatus('Generating chart...');
-      setThread((prev) => [...prev, { role: 'user', content: text }]);
       try {
-        const next = await generateChart(text, thread);
+        const next = await generateChart(text, []);
         setPayload(next);
-        setThread((prev) => [...prev, { role: 'assistant', content: next.reply }]);
-        setAiStatus(next.reply);
-      } catch (err) {
-        const fallbackType = [...text.toLowerCase().matchAll(/[a-z-]+/g)]
-          .map((m) => m[0])
-          .find((token) => isChartTypeId(token));
-        const fallback = demoPayload(fallbackType || 'bar', 'local demo');
-        setPayload(fallback);
-        setThread((prev) => [...prev, { role: 'assistant', content: fallback.reply }]);
-        setAiStatus(
-          `${err instanceof Error ? err.message : 'Agent offline'}. Showing local demo data.`
-        );
+        setKind(next.chartType);
+        setStatus(next.reply);
+      } catch {
+        if (isChartTypeId(local.kind)) {
+          setPayload(demoPayload(local.kind, local.topic));
+        }
+        setStatus(`${local.summary} Agent offline, using local demo data.`);
       } finally {
         setBusy(false);
         lock.current = false;
-        setAiPrompt('');
       }
     },
-    [thread]
+    [kind, solar, echart]
   );
 
   return (
     <div className={styles.shell}>
       <header className={styles.hero}>
-        <div className={styles.heroTop}>
-          <p className={styles.brand}>AI Chart Generator</p>
-          <div className={styles.tabs} role="tablist" aria-label="Studio mode">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={stage === 'solar'}
-              className={stage === 'solar' ? styles.tabOn : styles.tab}
-              onClick={() => setStage('solar')}
-            >
-              Solar lab
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={stage === 'ai'}
-              className={stage === 'ai' ? styles.tabOn : styles.tab}
-              onClick={() => setStage('ai')}
-            >
-              AI charts
-            </button>
-          </div>
-        </div>
-        <div className={styles.heroBottom}>
-          <h1>Chart stage left, parameters right, prompt dock below.</h1>
-          <p className={styles.lede}>
-            Same studio format for the D3 solar system and the ECharts AI demos.
-          </p>
-        </div>
+        <p className={styles.brand}>AI Chart Generator</p>
+        <p className={styles.lede}>
+          One stage, dynamic parameters. Prompt any chart type and tune it on the right.
+        </p>
       </header>
 
-      <section className={styles.workspace} aria-label={stage === 'solar' ? 'Solar studio' : 'AI chart studio'}>
+      <section className={styles.workspace} aria-label="Chart studio">
         <div className={styles.stage}>
-          {stage === 'solar' ? (
-            <SolarSystemChart params={solar} />
-          ) : (
-            <ChartCanvas payload={payload} busy={busy} />
-          )}
+          {kind === 'solar' ? <SolarSystemChart params={solar} /> : <ChartCanvas payload={payload} busy={busy} />}
         </div>
 
-        {stage === 'solar' ? (
-          <SolarControls
-            params={solar}
-            onChange={(next) => {
-              setSolar(next);
-              setSolarStatus('Manual dial update. Prompt dock can still rewrite these.');
-            }}
-            onPreset={(next, label) => {
-              setSolar(next);
-              setSolarStatus(`${label} loaded into the parameter panel.`);
-            }}
-          />
-        ) : (
-          <AiChartParams
-            onPick={(prompt) => {
-              setAiPrompt(prompt);
-              void runAi(prompt);
-            }}
-          />
-        )}
+        <DynamicParams
+          kind={kind}
+          solar={solar}
+          echart={echart}
+          onSolar={(next) => {
+            setSolar(next);
+            setStatus('Solar parameters updated.');
+          }}
+          onEchart={(next) => {
+            setEchart(next);
+            setStatus('Chart parameters updated.');
+          }}
+          onPresetSolar={(next, label) => {
+            setKind('solar');
+            setSolar(next);
+            setStatus(`${label} loaded.`);
+          }}
+        />
 
-        {stage === 'solar' ? (
-          <PromptDock
-            value={solarPrompt}
-            placeholder="Describe the system, e.g. 12 fast planets with trails and no moons"
-            submitLabel="Apply"
-            samples={SOLAR_PROMPT_SAMPLES}
-            status={solarStatus}
-            onChange={setSolarPrompt}
-            onSubmit={applySolarPrompt}
-            onSample={(sample) => {
-              setSolarPrompt(sample);
-              applySolarPrompt(sample);
-            }}
-          />
-        ) : (
-          <PromptDock
-            value={aiPrompt}
-            busy={busy}
-            placeholder="Describe an ECharts demo, e.g. stacked bar of Q3 sales"
-            submitLabel="Generate"
-            samples={AI_SAMPLES}
-            status={aiStatus}
-            onChange={setAiPrompt}
-            onSubmit={(value) => void runAi(value)}
-            onSample={(sample) => {
-              setAiPrompt(sample);
-              void runAi(sample);
-            }}
-          />
-        )}
+        <PromptDock
+          value={prompt}
+          busy={busy}
+          placeholder="Ask for a chart, e.g. stacked bar of Q3 sales, or solar system with 10 fast planets"
+          submitLabel="Generate"
+          samples={STUDIO_PROMPT_SAMPLES}
+          status={status}
+          onChange={setPrompt}
+          onSubmit={(value) => void applyPrompt(value)}
+          onSample={(sample) => void applyPrompt(sample)}
+        />
       </section>
     </div>
   );

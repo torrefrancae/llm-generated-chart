@@ -16,8 +16,8 @@ export default function SolarSystemChart({ params }: Props) {
     const host = hostRef.current;
     if (!host) return undefined;
 
-    const width = host.clientWidth || 720;
-    const height = Math.max(420, Math.round(width * 0.62));
+    const width = Math.max(320, host.clientWidth || 720);
+    const height = Math.max(260, host.clientHeight || Math.round(width * 0.55));
     const cx = width / 2;
     const cy = height / 2;
 

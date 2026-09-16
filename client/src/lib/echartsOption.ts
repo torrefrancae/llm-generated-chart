@@ -15,8 +15,8 @@ function titleBlock(payload: ChartPayload) {
     text: payload.title,
     subtext: payload.subtitle || '',
     left: 'left',
-    textStyle: { color: ink, fontFamily: 'Fraunces, Georgia, serif', fontSize: 22, fontWeight: 700 },
-    subtextStyle: { color: muted, fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13 },
+    textStyle: { color: ink, fontFamily: 'Fraunces, Georgia, serif', fontSize: 18, fontWeight: 700 },
+    subtextStyle: { color: muted, fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 12 },
   };
 }
 
@@ -29,8 +29,12 @@ export function toEchartsOption(payload: ChartPayload): EChartsOption {
     backgroundColor: 'transparent',
     title: titleBlock(payload),
     tooltip: { trigger: 'item' as const },
-    legend: { textStyle: { color: muted }, top: 36 },
-    grid: { left: 48, right: 24, top: 88, bottom: 48 },
+    legend: {
+      show: payload.showLegend !== false,
+      textStyle: { color: muted },
+      top: 36,
+    },
+    grid: { left: 40, right: 18, top: 72, bottom: 36 },
   };
 
   switch (payload.chartType) {

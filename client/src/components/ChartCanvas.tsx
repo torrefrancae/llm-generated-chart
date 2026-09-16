@@ -25,7 +25,7 @@ export default function ChartCanvas({ payload, busy }: Props) {
       {busy ? <div className={styles.loader} aria-label="Generating chart" /> : null}
       <ReactECharts
         option={toEchartsOption(payload)}
-        style={{ height: '100%', width: '100%', minHeight: 420 }}
+        style={{ height: '100%', width: '100%', minHeight: 280 }}
         notMerge
         lazyUpdate
       />

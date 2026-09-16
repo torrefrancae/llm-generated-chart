@@ -20,6 +20,8 @@ export type ChartPayload = {
   ohlc?: Array<{ date: string; open: number; close: number; low: number; high: number }>;
   value?: number;
   max?: number;
+  showLegend?: boolean;
+  showLabels?: boolean;
 };
 
 export type ChatTurn = {

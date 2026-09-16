@@ -1,7 +1,7 @@
 .wrap,
 .empty {
   position: relative;
-  min-height: 420px;
+  min-height: 0;
   height: 100%;
   border-radius: 0;
   border: 0;

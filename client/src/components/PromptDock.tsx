@@ -17,7 +17,7 @@ export default function PromptDock({
   value,
   busy,
   placeholder,
-  submitLabel = 'Apply',
+  submitLabel = 'Generate',
   samples,
   status,
   onChange,
@@ -40,12 +40,13 @@ export default function PromptDock({
           onSubmit(value);
         }}
       >
-        <input
+        <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          aria-label="Prompt"
+          aria-label="Chart prompt"
           disabled={busy}
+          rows={3}
         />
         <button type="submit" disabled={busy || !value.trim()}>
           {busy ? 'Working...' : submitLabel}

@@ -1,0 +1,91 @@
+.panel {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px 12px;
+  background: rgba(6, 12, 22, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 0;
+  overflow: auto;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f5b942;
+}
+
+.title {
+  margin: 0;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.copy {
+  margin: 0;
+  color: rgba(236, 254, 255, 0.68);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.preset {
+  border: 1px solid rgba(245, 185, 66, 0.28);
+  background: rgba(245, 185, 66, 0.08);
+  color: #ecfeff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.preset:hover {
+  border-color: rgba(245, 185, 66, 0.55);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(236, 254, 255, 0.8);
+}
+
+.field input[type='range'] {
+  width: 100%;
+  accent-color: #f5b942;
+}
+
+.text {
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ecfeff;
+  padding: 0 10px;
+  font: inherit;
+}
+
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(236, 254, 255, 0.82);
+  cursor: pointer;
+}

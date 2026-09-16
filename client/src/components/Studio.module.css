@@ -1,43 +1,30 @@
 .shell {
-  width: min(1240px, calc(100% - 28px));
+  width: min(1200px, calc(100% - 20px));
   margin: 0 auto;
-  padding: 16px 0 40px;
+  height: 100vh;
+  max-height: 100dvh;
+  padding: 10px 0 12px;
   display: grid;
-  gap: 12px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .hero {
-  display: grid;
-  gap: 8px;
-  padding: 4px 4px 0;
-}
-
-.heroTop {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-}
-
-.heroBottom {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 12px 20px;
-  align-items: start;
-}
-
-@media (max-width: 720px) {
-  .heroBottom {
-    grid-template-columns: 1fr;
-  }
+  padding: 0 2px;
 }
 
 .brand {
   margin: 0;
   font-family: Fraunces, Georgia, serif;
-  font-size: clamp(1.9rem, 4.5vw, 2.8rem);
-  letter-spacing: -0.045em;
+  font-size: clamp(1.55rem, 3.5vw, 2.1rem);
+  letter-spacing: -0.04em;
   line-height: 1;
   background: linear-gradient(115deg, #fff6d5 10%, #f5b942 42%, #5ec8e8 88%);
   -webkit-background-clip: text;
@@ -45,65 +32,39 @@
   color: transparent;
 }
 
-.hero h1 {
-  margin: 0;
-  font-family: Fraunces, Georgia, serif;
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  color: #ecfeff;
-}
-
 .lede {
   margin: 0;
-  color: rgba(236, 254, 255, 0.72);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin: 0;
-}
-
-.tab,
-.tabOn {
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
-  color: #ecfeff;
+  color: rgba(236, 254, 255, 0.7);
   font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.tabOn {
-  border-color: rgba(245, 185, 66, 0.55);
-  background: rgba(245, 185, 66, 0.16);
+  line-height: 1.35;
+  max-width: 46ch;
 }
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-  grid-template-rows: minmax(420px, 1fr) auto;
-  gap: 12px;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
   min-height: 0;
+  overflow: hidden;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 860px) {
+  .shell {
+    height: auto;
+    max-height: none;
+    overflow: auto;
+  }
+
   .workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto;
+    grid-template-rows: 360px auto auto;
   }
 }
 
 .stage {
   min-width: 0;
-  min-height: 420px;
+  min-height: 0;
   border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
   background: #05080f;
@@ -111,5 +72,5 @@
 
 .stage > * {
   height: 100%;
-  min-height: 420px;
+  min-height: 0;
 }
