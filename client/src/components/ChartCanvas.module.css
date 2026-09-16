@@ -54,6 +54,20 @@
   z-index: 2;
 }
 
+.refine {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: rgba(236, 254, 255, 0.85);
+  background: rgba(8, 14, 24, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 @keyframes slide {
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }

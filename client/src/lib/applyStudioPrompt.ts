@@ -51,11 +51,22 @@ export function applyStudioPrompt(
   let echart = defaultEchartFor(kind);
   echart = { ...echart, title: topic.slice(0, 48) || echart.title };
 
-  const countCats = text.match(/(\d+)\s*(categor(?:y|ies)|weeks?|months?|points?|slices?|traits?)/i);
+  const countCats = text.match(/(\d+)\s*(categor(?:y|ies)|weeks?|months?|points?|slices?|traits?|days?|sessions?)/i);
   if (countCats) echart.categoryCount = Math.max(2, Math.min(12, Number(countCats[1])));
 
-  const countSeries = text.match(/(\d+)\s*(series|lines?|groups?)/i);
-  if (countSeries) echart.seriesCount = Math.max(1, Math.min(5, Number(countSeries[1])));
+  const countSeries = text.match(/(\d+)\s*(series|lines?|groups?|squads?|product lines?)/i);
+  if (countSeries) {
+    echart.seriesCount = Math.max(1, Math.min(5, Number(countSeries[1])));
+  } else {
+    const listed = text.match(/\b(?:across|of)\s+([^.]+?)(?:\s+with\s+|\s+over\s+|$)/i);
+    if (listed?.[1] && /,/.test(listed[1])) {
+      const parts = listed[1]
+        .split(/,| and /i)
+        .map((p) => p.trim())
+        .filter(Boolean);
+      if (parts.length >= 2 && parts.length <= 5) echart.seriesCount = parts.length;
+    }
+  }
 
   if (/\bstacked\b/i.test(text)) echart.stacked = true;
   if (/\bhorizontal\b/i.test(text)) echart.horizontal = true;
