@@ -24,19 +24,24 @@ export default function Studio() {
   const [topic, setTopic] = React.useState('sample market');
   const [prompt, setPrompt] = React.useState('');
   const [status, setStatus] = React.useState(
-    'Ask for a solar system, bar chart, donut, radar, or any other style. The right panel follows that chart.'
+    'Ask for a chart type below. The stage waits for real generated data before drawing.'
   );
   const [waiting, setWaiting] = React.useState(false);
-  const [refining, setRefining] = React.useState(false);
   const [payload, setPayload] = React.useState<ChartPayload | null>(null);
   const requestId = React.useRef(0);
+  /* When false, param changes from a prompt must not paint local placeholder data over the agent chart. */
+  const allowParamPaint = React.useRef(true);
 
-  React.useEffect(() => {
-    if (kind === 'solar') return;
-    const next = buildPayloadFromParams(kind, echart, topic);
-    setPayload(next);
-    setWaiting(false);
-  }, [kind, echart, topic]);
+  const paintFromParams = React.useCallback(
+    (nextKind: StudioKind, nextEchart: EchartParams, nextTopic: string) => {
+      if (nextKind === 'solar' || !isChartTypeId(nextKind)) {
+        setPayload(null);
+        return;
+      }
+      setPayload(buildPayloadFromParams(nextKind, nextEchart, nextTopic));
+    },
+    []
+  );
 
   const applyPrompt = React.useCallback(
     async (raw: string) => {
@@ -46,8 +51,9 @@ export default function Studio() {
       const local = applyStudioPrompt(text, { kind, solar, echart });
       const id = ++requestId.current;
       setPrompt('');
-      setWaiting(local.kind !== 'solar');
-      setRefining(false);
+      setStatus('Generating chart...');
+      allowParamPaint.current = false;
+
       setKind(local.kind);
       setSolar(local.solar);
       setEchart(local.echart);
@@ -57,60 +63,44 @@ export default function Studio() {
         setPayload(null);
         setWaiting(false);
         setStatus(`${local.summary} Ready now.`);
+        allowParamPaint.current = true;
         return;
       }
 
-      const localPayload = buildPayloadFromParams(local.kind, local.echart, local.topic);
-      setPayload(localPayload);
-      setWaiting(false);
-      setStatus(
-        payloadHasData(localPayload)
-          ? `${local.summary} Dummy data is ready.`
-          : 'Preparing chart data...'
-      );
+      /* Do not flash local placeholder data. Wait for the agent, then draw once. */
+      setPayload(null);
+      setWaiting(true);
 
-      if (!payloadHasData(localPayload)) {
-        setWaiting(true);
-      }
-
-      setRefining(true);
       try {
         const next = await generateChart(text, []);
         if (id !== requestId.current) return;
         if (payloadHasData(next)) {
           setPayload(next);
           setKind(next.chartType);
-          setWaiting(false);
-          setStatus(`${next.reply} Agent polish applied.`);
+          setStatus(next.reply || 'Chart ready.');
         } else {
-          setStatus(`${local.summary} Keeping local dummy data.`);
+          paintFromParams(local.kind, local.echart, local.topic);
+          setStatus('Agent returned incomplete data. Showing local fallback.');
+          allowParamPaint.current = true;
         }
       } catch {
         if (id !== requestId.current) return;
-        if (payloadHasData(localPayload)) {
-          setStatus(`${local.summary} Showing local dummy data.`);
-        } else if (isChartTypeId(local.kind)) {
-          setWaiting(true);
-          setStatus('Still preparing chart data...');
-        }
+        paintFromParams(local.kind, local.echart, local.topic);
+        setStatus('Agent unavailable. Showing local fallback dummy data.');
+        allowParamPaint.current = true;
       } finally {
-        if (id === requestId.current) {
-          setRefining(false);
-          if (payloadHasData(localPayload) || payloadHasData(payload)) setWaiting(false);
-        }
+        if (id === requestId.current) setWaiting(false);
       }
     },
-    [kind, solar, echart, payload]
+    [kind, solar, echart, paintFromParams]
   );
-
-  const showLoader = waiting || (kind !== 'solar' && !payloadHasData(payload));
 
   return (
     <div className={styles.shell}>
       <header className={styles.hero}>
         <p className={styles.brand}>AI Chart Generator</p>
         <p className={styles.lede}>
-          One stage, dynamic parameters. Prompt any chart type and tune it on the right.
+          Prompt any chart type. The stage loads first, then draws when data is ready.
         </p>
       </header>
 
@@ -119,11 +109,7 @@ export default function Studio() {
           {kind === 'solar' ? (
             <SolarSystemChart params={solar} />
           ) : (
-            <ChartCanvas
-              payload={payloadHasData(payload) ? payload : null}
-              busy={showLoader}
-              refining={refining && payloadHasData(payload)}
-            />
+            <ChartCanvas payload={waiting ? null : payloadHasData(payload) ? payload : null} busy={waiting} />
           )}
         </div>
 
@@ -136,13 +122,19 @@ export default function Studio() {
             setStatus('Solar parameters updated.');
           }}
           onEchart={(next) => {
+            allowParamPaint.current = true;
             setEchart(next);
-            setStatus('Chart parameters updated on local dummy data.');
+            if (kind !== 'solar' && isChartTypeId(kind) && !waiting) {
+              paintFromParams(kind, next, topic);
+            }
+            setStatus('Parameters updated.');
           }}
           onPresetSolar={(next, label) => {
             setKind('solar');
             setSolar(next);
+            setPayload(null);
             setWaiting(false);
+            allowParamPaint.current = true;
             setStatus(`${label} loaded.`);
           }}
         />

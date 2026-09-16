@@ -6,19 +6,18 @@ import styles from '@/components/ChartCanvas.module.css';
 interface Props {
   payload: ChartPayload | null;
   busy?: boolean;
-  refining?: boolean;
 }
 
-export default function ChartCanvas({ payload, busy = false, refining = false }: Props) {
+export default function ChartCanvas({ payload, busy = false }: Props) {
   if (!payload) {
     return (
       <div className={styles.empty} aria-live="polite">
         <p className={styles.kicker}>{busy ? 'Loading' : 'Live canvas'}</p>
-        <h2>{busy ? 'Preparing chart data...' : 'Use the prompt dock below'}</h2>
+        <h2>{busy ? 'Generating chart data...' : 'Use the prompt box below'}</h2>
         <p>
           {busy
-            ? 'Hang tight while dummy series are built for this chart type.'
-            : 'Describe a chart type. Dummy data paints as soon as it is ready.'}
+            ? 'Waiting for the chart response. Nothing is drawn until data is ready.'
+            : 'Describe a chart type. The stage stays empty until generation finishes.'}
         </p>
         {busy ? <div className={styles.loader} aria-label="Loading chart data" /> : null}
       </div>
@@ -27,7 +26,6 @@ export default function ChartCanvas({ payload, busy = false, refining = false }:
 
   return (
     <div className={styles.wrap}>
-      {refining ? <p className={styles.refine}>Optional agent polish running in the background</p> : null}
       <ReactECharts
         option={toEchartsOption(payload)}
         style={{ height: '100%', width: '100%', minHeight: 280 }}
