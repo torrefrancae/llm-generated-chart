@@ -1,23 +1,44 @@
 .shell {
   width: min(1240px, calc(100% - 28px));
   margin: 0 auto;
-  padding: 22px 0 56px;
+  padding: 16px 0 48px;
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .hero {
   display: grid;
-  gap: 10px;
-  padding: 10px 4px 2px;
+  gap: 8px;
+  padding: 4px 4px 0;
+}
+
+.heroTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.heroBottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 12px 20px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .heroBottom {
+    grid-template-columns: 1fr;
+  }
 }
 
 .brand {
   margin: 0;
   font-family: Fraunces, Georgia, serif;
-  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-size: clamp(1.9rem, 4.5vw, 2.8rem);
   letter-spacing: -0.045em;
-  line-height: 0.95;
+  line-height: 1;
   background: linear-gradient(115deg, #fff6d5 10%, #f5b942 42%, #5ec8e8 88%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -26,36 +47,35 @@
 
 .hero h1 {
   margin: 0;
-  max-width: 22ch;
   font-family: Fraunces, Georgia, serif;
-  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
-  line-height: 1.2;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  line-height: 1.25;
   letter-spacing: -0.02em;
   color: #ecfeff;
 }
 
 .lede {
   margin: 0;
-  max-width: 58ch;
   color: rgba(236, 254, 255, 0.72);
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .tabs {
   display: flex;
   gap: 8px;
-  margin-top: 4px;
+  margin: 0;
 }
 
 .tab,
 .tabOn {
-  height: 34px;
-  padding: 0 14px;
+  height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.04);
   color: #ecfeff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }

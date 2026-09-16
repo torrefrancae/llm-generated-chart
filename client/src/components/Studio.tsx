@@ -54,31 +54,34 @@ export default function Studio() {
   return (
     <div className={styles.shell}>
       <header className={styles.hero}>
-        <p className={styles.brand}>AI Chart Generator</p>
-        <h1>A living solar system first. Then thirty chart styles on demand.</h1>
-        <p className={styles.lede}>
-          Built with D3 for the opening scene, ECharts for the AI studio. Click a sample modification and
-          watch the orbits rewrite themselves.
-        </p>
-        <div className={styles.tabs} role="tablist" aria-label="Studio mode">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={stage === 'solar'}
-            className={stage === 'solar' ? styles.tabOn : styles.tab}
-            onClick={() => setStage('solar')}
-          >
-            Solar lab
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={stage === 'ai'}
-            className={stage === 'ai' ? styles.tabOn : styles.tab}
-            onClick={() => setStage('ai')}
-          >
-            AI charts
-          </button>
+        <div className={styles.heroTop}>
+          <p className={styles.brand}>AI Chart Generator</p>
+          <div className={styles.tabs} role="tablist" aria-label="Studio mode">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={stage === 'solar'}
+              className={stage === 'solar' ? styles.tabOn : styles.tab}
+              onClick={() => setStage('solar')}
+            >
+              Solar lab
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={stage === 'ai'}
+              className={stage === 'ai' ? styles.tabOn : styles.tab}
+              onClick={() => setStage('ai')}
+            >
+              AI charts
+            </button>
+          </div>
+        </div>
+        <div className={styles.heroBottom}>
+          <h1>Living solar system, then thirty chart styles on demand.</h1>
+          <p className={styles.lede}>
+            D3 opening scene with one-tap presets. Switch to AI charts when you want ECharts demos.
+          </p>
         </div>
       </header>
 
