@@ -21,7 +21,7 @@ export const DEFAULT_SOLAR: SolarParams = {
   starRadius: 28,
   eccentricity: 0.08,
   showMoons: true,
-  showTrails: false,
+  showTrails: true,
   showLabels: true,
 };
 
