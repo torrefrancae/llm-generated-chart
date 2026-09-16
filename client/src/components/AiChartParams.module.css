@@ -1,0 +1,70 @@
+.panel {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 10px;
+  align-content: start;
+  padding: 16px 14px;
+  min-height: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(6, 12, 22, 0.72);
+  overflow: hidden;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f5b942;
+}
+
+.title {
+  margin: 0;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+.copy {
+  margin: 0;
+  color: rgba(236, 254, 255, 0.68);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.list {
+  display: grid;
+  gap: 6px;
+  overflow: auto;
+  min-height: 0;
+  padding-right: 2px;
+}
+
+.item {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+}
+
+.item:hover {
+  border-color: rgba(94, 200, 232, 0.45);
+  background: rgba(94, 200, 232, 0.1);
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hint {
+  font-size: 11px;
+  color: rgba(236, 254, 255, 0.6);
+  line-height: 1.35;
+}

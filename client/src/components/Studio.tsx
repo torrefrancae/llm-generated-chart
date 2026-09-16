@@ -1,40 +1,64 @@
+import AiChartParams from '@/components/AiChartParams';
 import ChartCanvas from '@/components/ChartCanvas';
+import PromptDock from '@/components/PromptDock';
 import SolarControls from '@/components/SolarControls';
 import SolarSystemChart from '@/components/SolarSystemChart';
-import TypeRail from '@/components/TypeRail';
 import { generateChart, type ChartPayload, type ChatTurn } from '@/lib/api';
 import { demoPayload } from '@/lib/demoPayload';
 import { isChartTypeId } from '@/lib/chartTypes';
+import { parseSolarPrompt, SOLAR_PROMPT_SAMPLES } from '@/lib/parseSolarPrompt';
 import { DEFAULT_SOLAR, type SolarParams } from '@/lib/solarSystem';
 import styles from '@/components/Studio.module.css';
 import React from 'react';
 
 type Stage = 'solar' | 'ai';
 
+const AI_SAMPLES = [
+  'Stacked bar of Q3 product lines',
+  'Radar of team skills',
+  'Funnel from lead to paid',
+  'Donut of weekend traffic sources',
+];
+
 export default function Studio() {
   const [stage, setStage] = React.useState<Stage>('solar');
   const [solar, setSolar] = React.useState<SolarParams>(DEFAULT_SOLAR);
-  const [note, setNote] = React.useState('Classic Sol loaded. Click any sample to reshape the system.');
-  const [input, setInput] = React.useState('');
+  const [solarPrompt, setSolarPrompt] = React.useState('');
+  const [solarStatus, setSolarStatus] = React.useState(
+    'Solar lab ready. Use a sample prompt or type your own to reshape the system.'
+  );
+  const [aiPrompt, setAiPrompt] = React.useState('');
   const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState('');
+  const [aiStatus, setAiStatus] = React.useState('Pick a chart type or write a prompt below.');
   const [payload, setPayload] = React.useState<ChartPayload | null>(null);
   const [thread, setThread] = React.useState<ChatTurn[]>([]);
   const lock = React.useRef(false);
 
-  const run = React.useCallback(
+  const applySolarPrompt = React.useCallback(
+    (raw: string) => {
+      const text = raw.trim();
+      if (!text) return;
+      const result = parseSolarPrompt(text, solar);
+      setSolar(result.params);
+      setSolarStatus(result.summary);
+      setSolarPrompt('');
+    },
+    [solar]
+  );
+
+  const runAi = React.useCallback(
     async (message: string) => {
       const text = message.trim();
       if (!text || lock.current) return;
       lock.current = true;
       setBusy(true);
-      setError('');
-      setStage('ai');
+      setAiStatus('Generating chart...');
       setThread((prev) => [...prev, { role: 'user', content: text }]);
       try {
         const next = await generateChart(text, thread);
         setPayload(next);
         setThread((prev) => [...prev, { role: 'assistant', content: next.reply }]);
+        setAiStatus(next.reply);
       } catch (err) {
         const fallbackType = [...text.toLowerCase().matchAll(/[a-z-]+/g)]
           .map((m) => m[0])
@@ -42,10 +66,13 @@ export default function Studio() {
         const fallback = demoPayload(fallbackType || 'bar', 'local demo');
         setPayload(fallback);
         setThread((prev) => [...prev, { role: 'assistant', content: fallback.reply }]);
-        setError(err instanceof Error ? err.message : 'Could not reach the chart agent');
+        setAiStatus(
+          `${err instanceof Error ? err.message : 'Agent offline'}. Showing local demo data.`
+        );
       } finally {
         setBusy(false);
         lock.current = false;
+        setAiPrompt('');
       }
     },
     [thread]
@@ -78,80 +105,74 @@ export default function Studio() {
           </div>
         </div>
         <div className={styles.heroBottom}>
-          <h1>Living solar system, then thirty chart styles on demand.</h1>
+          <h1>Chart stage left, parameters right, prompt dock below.</h1>
           <p className={styles.lede}>
-            D3 opening scene with one-tap presets. Switch to AI charts when you want ECharts demos.
+            Same studio format for the D3 solar system and the ECharts AI demos.
           </p>
         </div>
       </header>
 
-      {stage === 'solar' ? (
-        <section className={styles.solarLayout} aria-label="Solar system showcase">
-          <div className={styles.solarStage}>
+      <section className={styles.workspace} aria-label={stage === 'solar' ? 'Solar studio' : 'AI chart studio'}>
+        <div className={styles.stage}>
+          {stage === 'solar' ? (
             <SolarSystemChart params={solar} />
-            <p className={styles.solarNote}>{note}</p>
-          </div>
+          ) : (
+            <ChartCanvas payload={payload} busy={busy} />
+          )}
+        </div>
+
+        {stage === 'solar' ? (
           <SolarControls
             params={solar}
             onChange={(next) => {
               setSolar(next);
-              setNote('Custom mix. Keep dialing or jump to a sample.');
+              setSolarStatus('Manual dial update. Prompt dock can still rewrite these.');
             }}
             onPreset={(next, label) => {
               setSolar(next);
-              setNote(`${label} applied. Orbits and moons update live.`);
+              setSolarStatus(`${label} loaded into the parameter panel.`);
             }}
           />
-        </section>
-      ) : (
-        <>
-          <TypeRail
+        ) : (
+          <AiChartParams
             onPick={(prompt) => {
-              setInput(prompt);
-              void run(prompt);
+              setAiPrompt(prompt);
+              void runAi(prompt);
             }}
           />
-          <div className={styles.grid}>
-            <section className={styles.chat} aria-label="Chart chat">
-              <div className={styles.thread}>
-                {thread.length === 0 ? (
-                  <p className={styles.hint}>
-                    Ask for a stacked bar, radar, funnel, or any of the thirty styles. Dummy data only.
-                  </p>
-                ) : (
-                  thread.map((turn, i) => (
-                    <div key={`${turn.role}-${i}`} className={turn.role === 'user' ? styles.user : styles.bot}>
-                      {turn.content}
-                    </div>
-                  ))
-                )}
-              </div>
-              <form
-                className={styles.composer}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const value = input;
-                  setInput('');
-                  void run(value);
-                }}
-              >
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Talk about a chart..."
-                  aria-label="Chart request"
-                  disabled={busy}
-                />
-                <button type="submit" disabled={busy || !input.trim()}>
-                  {busy ? 'Painting...' : 'Generate'}
-                </button>
-              </form>
-              {error ? <p className={styles.error}>{error}. Showing local demo data.</p> : null}
-            </section>
-            <ChartCanvas payload={payload} busy={busy} />
-          </div>
-        </>
-      )}
+        )}
+
+        {stage === 'solar' ? (
+          <PromptDock
+            value={solarPrompt}
+            placeholder="Describe the system, e.g. 12 fast planets with trails and no moons"
+            submitLabel="Apply"
+            samples={SOLAR_PROMPT_SAMPLES}
+            status={solarStatus}
+            onChange={setSolarPrompt}
+            onSubmit={applySolarPrompt}
+            onSample={(sample) => {
+              setSolarPrompt(sample);
+              applySolarPrompt(sample);
+            }}
+          />
+        ) : (
+          <PromptDock
+            value={aiPrompt}
+            busy={busy}
+            placeholder="Describe an ECharts demo, e.g. stacked bar of Q3 sales"
+            submitLabel="Generate"
+            samples={AI_SAMPLES}
+            status={aiStatus}
+            onChange={setAiPrompt}
+            onSubmit={(value) => void runAi(value)}
+            onSample={(sample) => {
+              setAiPrompt(sample);
+              void runAi(sample);
+            }}
+          />
+        )}
+      </section>
     </div>
   );
 }

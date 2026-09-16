@@ -19,9 +19,9 @@ export default function SolarControls({ params, onChange, onPreset }: Props) {
 
   return (
     <aside className={styles.panel} aria-label="Solar system controls">
-      <p className={styles.kicker}>Solar lab</p>
-      <h2 className={styles.title}>Tune the system</h2>
-      <p className={styles.copy}>Click a sample below, or drag the dials. Recruiters can demo this in one tap.</p>
+      <p className={styles.kicker}>Parameters</p>
+      <h2 className={styles.title}>Tune live</h2>
+      <p className={styles.copy}>Dial by hand, or use the prompt dock below to rewrite these values.</p>
 
       <div className={styles.presets} role="list">
         {SOLAR_PRESETS.map((preset) => (
