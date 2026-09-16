@@ -1,7 +1,7 @@
 .shell {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1240px, calc(100% - 28px));
   margin: 0 auto;
-  padding: 28px 0 48px;
+  padding: 22px 0 56px;
   display: grid;
   gap: 18px;
 }
@@ -9,16 +9,16 @@
 .hero {
   display: grid;
   gap: 10px;
-  padding: 8px 4px 4px;
+  padding: 10px 4px 2px;
 }
 
 .brand {
   margin: 0;
   font-family: Fraunces, Georgia, serif;
-  font-size: clamp(2rem, 5vw, 3.2rem);
-  letter-spacing: -0.04em;
-  line-height: 1;
-  background: linear-gradient(110deg, #ecfeff 20%, #2dd4bf 55%, #fbbf24 100%);
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  background: linear-gradient(115deg, #fff6d5 10%, #f5b942 42%, #5ec8e8 88%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -26,9 +26,9 @@
 
 .hero h1 {
   margin: 0;
-  max-width: 18ch;
+  max-width: 22ch;
   font-family: Fraunces, Georgia, serif;
-  font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
   line-height: 1.2;
   letter-spacing: -0.02em;
   color: #ecfeff;
@@ -36,9 +36,58 @@
 
 .lede {
   margin: 0;
-  max-width: 52ch;
+  max-width: 58ch;
   color: rgba(236, 254, 255, 0.72);
   line-height: 1.55;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tab,
+.tabOn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ecfeff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tabOn {
+  border-color: rgba(245, 185, 66, 0.55);
+  background: rgba(245, 185, 66, 0.16);
+}
+
+.solarLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 14px;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .solarLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.solarStage {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.solarNote {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(236, 254, 255, 0.7);
 }
 
 .grid {
@@ -96,14 +145,14 @@
 
 .user {
   justify-self: end;
-  background: rgba(45, 212, 191, 0.16);
-  border: 1px solid rgba(45, 212, 191, 0.28);
+  background: rgba(94, 200, 232, 0.14);
+  border: 1px solid rgba(94, 200, 232, 0.28);
 }
 
 .bot {
   justify-self: start;
-  background: rgba(251, 191, 36, 0.12);
-  border: 1px solid rgba(251, 191, 36, 0.22);
+  background: rgba(245, 185, 66, 0.12);
+  border: 1px solid rgba(245, 185, 66, 0.22);
 }
 
 .composer {
@@ -130,8 +179,8 @@
   padding: 0 14px;
   cursor: pointer;
   font-weight: 800;
-  color: #042f2e;
-  background: linear-gradient(120deg, #5eead4, #fbbf24);
+  color: #1a1408;
+  background: linear-gradient(120deg, #f5b942, #5ec8e8);
 }
 
 .composer button:disabled,
