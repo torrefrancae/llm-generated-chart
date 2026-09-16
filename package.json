@@ -3,23 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
-    "lint": "eslint"
+    "dev": "next dev -p 3092 -H 127.0.0.1",
+    "build": "next build",
+    "export:hosting": "CHART_EXPORT=1 next build",
+    "start": "next start -p 3092 -H 127.0.0.1",
+    "lint": "eslint",
+    "api:build": "npm --prefix chart-runtime run build",
+    "api:start": "npm --prefix chart-runtime start"
   },
   "dependencies": {
+    "echarts": "^6.1.0",
+    "echarts-for-react": "^3.0.6",
+    "next": "^16.3.5",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.5.2"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20.19.43",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.2",
-    "@eslint/eslintrc": "^3"
+    "eslint-config-next": "^15.5.2",
+    "typescript": "^5"
   }
 }

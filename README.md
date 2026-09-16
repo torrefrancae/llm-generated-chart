@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Chart Generator (`llm-generated-chart`)
 
-## Getting Started
+Separate sample app for [torrefranca.site](https://torrefranca.site). Talk about ~30 chart types; a Cursor-backed API invents dummy data; the Next.js UI renders it with ECharts.
 
-First, run the development server:
+## URLs
+
+| Mode | URL |
+|---|---|
+| Local | http://127.0.0.1:3092/sample/ai-generate-app/ |
+| Production static mount | https://torrefranca.site/sample/ai-generate-app/ |
+| Local API | http://127.0.0.1:3093/health |
+| Production API (recommended) | https://torrefranca.site/api/chart/ |
+
+`basePath` and `assetPrefix` are fixed to `/sample/ai-generate-app` so the static export drops cleanly into `public_html/sample/ai-generate-app/` on Z.com shared hosting.
+
+## Setup
+
+1. Copy Cursor keys into `../../sh/.env.cursor` (or `chart-runtime/.env`) as `API_KEY1=...` / `CURSOR_API_KEY=...`.
+2. Install and run headless:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd apps/llm-generated-chart
+chmod +x serve.sh
+./serve.sh --headless --port=3092
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Stop:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+./serve.sh --restore
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Static export for shared hosting
 
-## Learn More
+```bash
+CHART_EXPORT=1 npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+Upload the `out/` folder to `~/public_html/sample/ai-generate-app/`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Exclude `/sample/` from the SPA fallback rewrite in the site root `.htaccess` (same pattern as `/anthony/`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Mount `chart-runtime` behind `/api/chart` on Passenger (or another Node endpoint). The browser uses `/api/chart` off localhost and `http://127.0.0.1:3093` while developing.
 
-## Deploy on Vercel
+## Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js App Router + static export
+- ECharts (`echarts-for-react`)
+- `chart-runtime` Node sidecar using `@cursor/sdk`
