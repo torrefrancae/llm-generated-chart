@@ -27,14 +27,11 @@ export type ChatTurn = {
   content: string;
 };
 
+const BASE = '/sample/ai-generate-app';
+
 export function chartApiBase(): string {
-  if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    if (host === '127.0.0.1' || host === 'localhost') {
-      return process.env.NEXT_PUBLIC_CHART_API_BASE || 'http://127.0.0.1:3093';
-    }
-  }
-  return process.env.NEXT_PUBLIC_CHART_API_BASE || '/api/chart';
+  if (typeof window === 'undefined') return `${BASE}/api`;
+  return `${BASE}/api`;
 }
 
 export async function generateChart(message: string, history: ChatTurn[]): Promise<ChartPayload> {

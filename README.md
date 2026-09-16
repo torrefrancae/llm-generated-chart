@@ -1,49 +1,58 @@
 # AI Chart Generator (`llm-generated-chart`)
 
-Separate sample app for [torrefranca.site](https://torrefranca.site). Talk about ~30 chart types; a Cursor-backed API invents dummy data; the Next.js UI renders it with ECharts.
+Node app that serves a **static React** frontend and a **Cursor-backed API**. No Next.js server is required on hosting.
+
+## Why this shape
+
+Z.com shared hosting will not run Next.js backend/API routes. This repo builds React to static files, then a small Express process:
+
+1. serves those files under `/sample/ai-generate-app/`
+2. handles `/sample/ai-generate-app/api/*` with `@cursor/sdk`
 
 ## URLs
 
 | Mode | URL |
 |---|---|
-| Local | http://127.0.0.1:3092/sample/ai-generate-app/ |
-| Production static mount | https://torrefranca.site/sample/ai-generate-app/ |
-| Local API | http://127.0.0.1:3093/health |
-| Production API (recommended) | https://torrefranca.site/api/chart/ |
+| Local (one Node process) | http://127.0.0.1:3092/sample/ai-generate-app/ |
+| Local API health | http://127.0.0.1:3092/sample/ai-generate-app/api/health |
+| Production static folder | `public_html/sample/ai-generate-app/` |
+| Production API mount | Passenger app at `/sample/ai-generate-app` or `/api/chart` |
 
-`basePath` and `assetPrefix` are fixed to `/sample/ai-generate-app` so the static export drops cleanly into `public_html/sample/ai-generate-app/` on Z.com shared hosting.
-
-## Setup
-
-1. Copy Cursor keys into `../../sh/.env.cursor` (or `chart-runtime/.env`) as `API_KEY1=...` / `CURSOR_API_KEY=...`.
-2. Install and run headless:
+## Commands
 
 ```bash
-cd apps/llm-generated-chart
+npm install
 chmod +x serve.sh
 ./serve.sh --headless --port=3092
-```
-
-3. Stop:
-
-```bash
 ./serve.sh --restore
 ```
 
-## Static export for shared hosting
+Manual:
 
 ```bash
-CHART_EXPORT=1 npm run build
+npm run build
+CHART_PORT=3092 CHART_SERVE_STATIC=1 npm start
 ```
 
-Upload the `out/` folder to `~/public_html/sample/ai-generate-app/`.
+Dev (Vite UI on 3092, API on 3093):
 
-Exclude `/sample/` from the SPA fallback rewrite in the site root `.htaccess` (same pattern as `/anthony/`).
+```bash
+npm run dev
+```
 
-Mount `chart-runtime` behind `/api/chart` on Passenger (or another Node endpoint). The browser uses `/api/chart` off localhost and `http://127.0.0.1:3093` while developing.
+## Keys
 
-## Stack
+Put Cursor keys in `../../sh/.env.cursor` or `.env`:
 
-- Next.js App Router + static export
-- ECharts (`echarts-for-react`)
-- `chart-runtime` Node sidecar using `@cursor/sdk`
+```bash
+API_KEY1=...
+# or CURSOR_API_KEY=...
+```
+
+## Hosting notes
+
+- `npm run build` writes UI to `dist/client` and server to `server/dist`
+- On Z.com you can either:
+  - run the Node app under Passenger for the whole `/sample/ai-generate-app` path, or
+  - copy `dist/client` into `public_html/sample/ai-generate-app/` and mount only the API
+- Root `.htaccess` must exclude `/sample/` from the SPA fallback (gate repo already has this)

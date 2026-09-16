@@ -1,5 +1,3 @@
-'use client';
-
 import ReactECharts from 'echarts-for-react';
 import type { ChartPayload } from '@/lib/api';
 import { toEchartsOption } from '@/lib/echartsOption';

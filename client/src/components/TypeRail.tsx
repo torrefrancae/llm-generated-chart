@@ -1,5 +1,3 @@
-'use client';
-
 import { CHART_TYPES } from '@/lib/chartTypes';
 import styles from '@/components/TypeRail.module.css';
 

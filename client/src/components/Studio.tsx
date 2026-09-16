@@ -1,5 +1,3 @@
-'use client';
-
 import ChartCanvas from '@/components/ChartCanvas';
 import TypeRail from '@/components/TypeRail';
 import { generateChart, type ChartPayload, type ChatTurn } from '@/lib/api';

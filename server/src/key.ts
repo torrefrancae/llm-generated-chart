@@ -17,10 +17,11 @@ function applyEnvFile(file: string): void {
 export function applyChartEnv(): void {
   const candidates = [
     path.resolve(__dirname, '../.env'),
+    path.resolve(__dirname, '../../.env'),
     path.resolve(process.cwd(), '.env'),
     path.resolve(__dirname, '../../../../sh/.env.cursor'),
     path.resolve(process.cwd(), '../../sh/.env.cursor'),
-    path.resolve(process.cwd(), '../../../sh/.env.cursor'),
+    path.resolve(process.cwd(), '../sh/.env.cursor'),
   ];
   for (const file of candidates) applyEnvFile(file);
 }

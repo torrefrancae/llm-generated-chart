@@ -62,57 +62,6 @@ stop_old() {
   stop_pid_file "$API_PID_FILE"
 }
 
-start_api() {
-  if is_api_up; then
-    echo "chart api already up http://127.0.0.1:${API_PORT}/health"
-    return 0
-  fi
-  stop_pid_file "$API_PID_FILE"
-  (
-    cd "$ROOT/chart-runtime"
-    if [[ ! -d node_modules/@cursor ]]; then
-      npm install >>"$LOG_FILE" 2>&1
-    fi
-    npm run build >>"$LOG_FILE" 2>&1
-    mkdir -p sandbox
-    NODE_BIN="$(command -v node)"
-    nohup sh -c "CHART_API_PORT=\"$API_PORT\" \"$NODE_BIN\" dist/server.js 2>&1 | tr -d '\\000' | stdbuf -oL strings -n 1 >> \"$LOG_FILE\"" >/dev/null 2>&1 &
-    echo $! >"$API_PID_FILE"
-  )
-  for _ in $(seq 1 40); do
-    if is_api_up; then
-      echo "chart api ready http://127.0.0.1:${API_PORT}/health"
-      return 0
-    fi
-    sleep 1
-  done
-  echo "chart api failed to start; see $LOG_FILE" >&2
-  return 1
-}
-
-start_web() {
-  if is_web_up; then
-    echo "web already up http://127.0.0.1:${PORT}/sample/ai-generate-app/"
-    return 0
-  fi
-  stop_pid_file "$PID_FILE"
-  : >"$LOG_FILE"
-  if [[ ! -d node_modules/next ]]; then
-    npm install >>"$LOG_FILE" 2>&1
-  fi
-  nohup sh -c "PORT=\"$PORT\" npx next dev -p \"$PORT\" -H 127.0.0.1 2>&1 | tr -d '\\000' | stdbuf -oL strings -n 1 >> \"$LOG_FILE\"" >/dev/null 2>&1 &
-  echo $! >"$PID_FILE"
-  for _ in $(seq 1 60); do
-    if is_web_up; then
-      echo "web ready http://127.0.0.1:${PORT}/sample/ai-generate-app/"
-      return 0
-    fi
-    sleep 1
-  done
-  echo "web failed to start; see $LOG_FILE" >&2
-  return 1
-}
-
 if [[ "$MODE" == "restore" ]]; then
   stop_old
   echo "stopped llm-generated-chart services"
@@ -126,8 +75,27 @@ fi
 
 stop_old
 : >"$LOG_FILE"
-start_api
-start_web
-sleep 5
-head -n 80 "$LOG_FILE" || true
-echo "open http://127.0.0.1:${PORT}/sample/ai-generate-app/"
+
+if [[ ! -d node_modules/vite ]]; then
+  npm install >>"$LOG_FILE" 2>&1
+fi
+
+npm run build >>"$LOG_FILE" 2>&1
+mkdir -p server/sandbox
+
+# Unified Node process: static React + Cursor API on one port
+nohup sh -c "CHART_PORT=\"$PORT\" CHART_SERVE_STATIC=1 node server/dist/server.js 2>&1 | tr -d '\\000' | stdbuf -oL strings -n 1 >> \"$LOG_FILE\"" >/dev/null 2>&1 &
+echo $! >"$PID_FILE"
+
+for _ in $(seq 1 40); do
+  if is_web_up; then
+    echo "ready http://127.0.0.1:${PORT}/sample/ai-generate-app/"
+    sleep 5
+    head -n 60 "$LOG_FILE" || true
+    exit 0
+  fi
+  sleep 1
+done
+
+echo "failed to start; see $LOG_FILE" >&2
+exit 1
