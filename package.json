@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Static React showcase + Node API for AI Chart Generator",
+  "main": "app.js",
   "engines": {
-    "node": ">=22.13"
+    "node": ">=20"
   },
   "scripts": {
     "dev": "concurrently -k \"npm:dev:server\" \"npm:dev:client\"",

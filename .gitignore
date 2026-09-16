@@ -13,6 +13,7 @@ server/dist
 debug.log
 .serve-headless*.pid
 server/sandbox/.cursor*
+server/data/
 
 # env
 .env

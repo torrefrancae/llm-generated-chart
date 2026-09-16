@@ -74,7 +74,17 @@ export function toEchartsOption(payload: ChartPayload): EChartsOption {
       return {
         ...common,
         tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: cats, boundaryGap: false, ...axisStyle() },
+        xAxis: {
+          type: 'category',
+          data: cats,
+          boundaryGap: false,
+          ...axisStyle(),
+          axisLabel: {
+            color: muted,
+            interval: cats.length > 24 ? Math.ceil(cats.length / 12) - 1 : 0,
+            hideOverlap: true,
+          },
+        },
         yAxis: { type: 'value', ...axisStyle() },
         series: series.map((s) => ({
           type: 'line',
@@ -86,7 +96,8 @@ export function toEchartsOption(payload: ChartPayload): EChartsOption {
               ? { opacity: 0.28 }
               : undefined,
           stack: payload.chartType === 'stacked-area' ? 'total' : undefined,
-          symbolSize: 8,
+          symbolSize: cats.length > 30 ? 4 : 8,
+          showSymbol: cats.length <= 40,
         })),
       };
     case 'pie':

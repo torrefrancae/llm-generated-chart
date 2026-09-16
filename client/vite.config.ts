@@ -17,6 +17,11 @@ export default defineConfig({
     host: '127.0.0.1',
     port: 3092,
     proxy: {
+      '/api/chart': {
+        target: 'http://127.0.0.1:3093',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/api\/chart/, ''),
+      },
       '/sample/ai-generate-app/api': {
         target: 'http://127.0.0.1:3093',
         changeOrigin: true,

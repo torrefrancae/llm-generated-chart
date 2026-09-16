@@ -52,8 +52,8 @@ export function applyStudioPrompt(
   let echart = defaultEchartFor(kind);
   echart = { ...echart, title: topic.slice(0, 48) || echart.title };
 
-  const countCats = text.match(/(\d+)\s*(categor(?:y|ies)|weeks?|months?|points?|slices?|traits?|days?|sessions?)/i);
-  if (countCats) echart.categoryCount = Math.max(2, Math.min(12, Number(countCats[1])));
+  const countCats = text.match(/(\d+)\s*(categor(?:y|ies)|weeks?|months?|points?|slices?|traits?|days?|sessions?|minutes?)/i);
+  if (countCats) echart.categoryCount = Math.max(2, Math.min(60, Number(countCats[1])));
 
   const countSeries = text.match(/(\d+)\s*(series|lines?|groups?|squads?|product lines?)/i);
   if (countSeries) {

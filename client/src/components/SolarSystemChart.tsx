@@ -103,7 +103,7 @@ export default function SolarSystemChart({ params }: Props) {
                 .style('left', `${event.offsetX + 12}px`)
                 .style('top', `${event.offsetY - 8}px`)
                 .html(
-                  `<strong>${d.name}</strong><span>Orbit ${Math.round(d.orbit)} · period ${d.period.toFixed(1)}s</span>`
+                  `<strong>${d.name}</strong><span>Orbit ${Math.round(d.orbit)} · ${d.moons} moon${d.moons === 1 ? '' : 's'} · period ${d.period.toFixed(1)}s</span>`
                 );
             })
             .on('mousemove', (event) => {

@@ -70,7 +70,24 @@
   background: #05080f;
 }
 
+.stageColumn {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.stageColumn > .stage {
+  min-height: 0;
+  height: 100%;
+}
+
 .stage > * {
   height: 100%;
   min-height: 0;
+}
+
+.workspace > :last-child {
+  grid-column: 1 / -1;
 }

@@ -105,6 +105,44 @@ export default function DynamicParams({ kind, solar, echart, onSolar, onEchart, 
             Labels
           </label>
         </div>
+        {solar.showMoons ? (
+          <>
+            <label className={styles.field}>
+              <span>Moons min ({solar.moonMin})</span>
+              <input
+                type="range"
+                min={1}
+                max={8}
+                value={solar.moonMin}
+                onChange={(e) => {
+                  const moonMin = clamp(Number(e.target.value), 1, 8);
+                  onSolar({
+                    ...solar,
+                    moonMin,
+                    moonMax: Math.max(moonMin, solar.moonMax),
+                  });
+                }}
+              />
+            </label>
+            <label className={styles.field}>
+              <span>Moons max ({solar.moonMax})</span>
+              <input
+                type="range"
+                min={1}
+                max={8}
+                value={solar.moonMax}
+                onChange={(e) => {
+                  const moonMax = clamp(Number(e.target.value), 1, 8);
+                  onSolar({
+                    ...solar,
+                    moonMax,
+                    moonMin: Math.min(solar.moonMin, moonMax),
+                  });
+                }}
+              />
+            </label>
+          </>
+        ) : null}
       </aside>
     );
   }
@@ -137,9 +175,9 @@ export default function DynamicParams({ kind, solar, echart, onSolar, onEchart, 
           <input
             type="range"
             min={2}
-            max={12}
+            max={60}
             value={echart.categoryCount}
-            onChange={(e) => onEchart({ ...echart, categoryCount: clamp(Number(e.target.value), 2, 12) })}
+            onChange={(e) => onEchart({ ...echart, categoryCount: clamp(Number(e.target.value), 2, 60) })}
           />
         </label>
       ) : null}

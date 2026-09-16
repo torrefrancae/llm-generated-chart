@@ -31,6 +31,45 @@
   color: rgba(236, 254, 255, 0.72);
 }
 
+.quota {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f5b942;
+}
+
+.meter {
+  display: flex;
+  gap: 6px;
+}
+
+.pipOn,
+.pipOff {
+  width: 18px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.pipOn {
+  background: linear-gradient(90deg, #f5b942, #5ec8e8);
+}
+
+.pipOff {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spent {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(245, 185, 66, 0.4);
+  background: rgba(245, 185, 66, 0.12);
+  color: #fff6d5;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .samples {
   display: flex;
   gap: 6px;

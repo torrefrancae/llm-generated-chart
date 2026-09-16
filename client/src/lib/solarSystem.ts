@@ -4,6 +4,8 @@ export type SolarParams = {
   starRadius: number;
   eccentricity: number;
   showMoons: boolean;
+  moonMin: number;
+  moonMax: number;
   showTrails: boolean;
   showLabels: boolean;
 };
@@ -21,9 +23,21 @@ export const DEFAULT_SOLAR: SolarParams = {
   starRadius: 28,
   eccentricity: 0.08,
   showMoons: true,
+  moonMin: 1,
+  moonMax: 3,
   showTrails: true,
   showLabels: true,
 };
+
+const MOON_CAP = 8;
+
+function withMoonRange(
+  params: Omit<SolarParams, 'moonMin' | 'moonMax'> & Partial<Pick<SolarParams, 'moonMin' | 'moonMax'>>
+): SolarParams {
+  const moonMin = Math.max(1, Math.min(MOON_CAP, params.moonMin ?? 1));
+  const moonMax = Math.max(moonMin, Math.min(MOON_CAP, params.moonMax ?? 3));
+  return { ...params, moonMin, moonMax };
+}
 
 export const SOLAR_PRESETS: SolarPreset[] = [
   {
@@ -36,7 +50,7 @@ export const SOLAR_PRESETS: SolarPreset[] = [
     id: 'nursery',
     label: 'Crowded nursery',
     blurb: 'Fourteen small bodies racing close in',
-    params: {
+    params: withMoonRange({
       planetCount: 14,
       orbitSpeed: 1.8,
       starRadius: 22,
@@ -44,27 +58,29 @@ export const SOLAR_PRESETS: SolarPreset[] = [
       showMoons: false,
       showTrails: true,
       showLabels: false,
-    },
+    }),
   },
   {
     id: 'giants',
     label: 'Twin giants',
     blurb: 'Four planets, two heavy gas worlds',
-    params: {
+    params: withMoonRange({
       planetCount: 4,
       orbitSpeed: 0.7,
       starRadius: 34,
       eccentricity: 0.12,
       showMoons: true,
+      moonMin: 2,
+      moonMax: 4,
       showTrails: false,
       showLabels: true,
-    },
+    }),
   },
   {
     id: 'waltz',
     label: 'Slow waltz',
     blurb: 'Five planets drifting for a patient read',
-    params: {
+    params: withMoonRange({
       planetCount: 5,
       orbitSpeed: 0.35,
       starRadius: 30,
@@ -72,13 +88,13 @@ export const SOLAR_PRESETS: SolarPreset[] = [
       showMoons: true,
       showTrails: true,
       showLabels: true,
-    },
+    }),
   },
   {
     id: 'swarm',
     label: 'Eccentric swarm',
     blurb: 'Nine stretched orbits for drama',
-    params: {
+    params: withMoonRange({
       planetCount: 9,
       orbitSpeed: 1.25,
       starRadius: 24,
@@ -86,21 +102,23 @@ export const SOLAR_PRESETS: SolarPreset[] = [
       showMoons: false,
       showTrails: true,
       showLabels: true,
-    },
+    }),
   },
   {
     id: 'ring',
     label: 'Moon garden',
     blurb: 'Six planets with busy moon trains',
-    params: {
+    params: withMoonRange({
       planetCount: 6,
       orbitSpeed: 1,
       starRadius: 26,
       eccentricity: 0.1,
       showMoons: true,
+      moonMin: 2,
+      moonMax: 5,
       showTrails: false,
       showLabels: true,
-    },
+    }),
   },
 ];
 
@@ -153,6 +171,14 @@ const COLORS = [
   '#9aa8b8',
 ];
 
+function moonsForPlanet(index: number, params: SolarParams): number {
+  if (!params.showMoons) return 0;
+  const min = Math.max(1, Math.min(MOON_CAP, Math.round(params.moonMin || 1)));
+  const max = Math.max(min, Math.min(MOON_CAP, Math.round(params.moonMax || min)));
+  const span = max - min + 1;
+  return min + ((index * 3 + 1) % span);
+}
+
 export function buildPlanets(params: SolarParams): PlanetSpec[] {
   const count = Math.max(1, Math.min(16, Math.round(params.planetCount)));
   return Array.from({ length: count }, (_, i) => {
@@ -164,7 +190,7 @@ export function buildPlanets(params: SolarParams): PlanetSpec[] {
       size: (4 + (i % 5) * 1.6) * giantBoost,
       color: COLORS[i % COLORS.length],
       period: 8 + i * 3.2,
-      moons: params.showMoons ? (i === 2 ? 1 : i === 4 || i === 5 ? 2 : i > 5 ? 1 : 0) : 0,
+      moons: moonsForPlanet(i, params),
       phase: (i * 0.7) % (Math.PI * 2),
     };
   });

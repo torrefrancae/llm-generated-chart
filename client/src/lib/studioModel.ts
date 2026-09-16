@@ -49,7 +49,50 @@ export function defaultEchartFor(kind: ChartTypeId): EchartParams {
   return base;
 }
 
+export function echartParamsFromPayload(payload: ChartPayload, current: EchartParams = DEFAULT_ECHART): EchartParams {
+  const t = payload.chartType;
+  const seriesLen = payload.series?.length || 0;
+  const firstSeriesPoints = payload.series?.[0]?.data?.length || 0;
+  const catLen = payload.categories?.length || 0;
+  const sliceLen = payload.slices?.length || 0;
+  const pairLen = payload.pairs?.length || 0;
+  const ohlcLen = payload.ohlc?.length || 0;
+
+  let categoryCount = current.categoryCount;
+  if (['pie', 'donut', 'rose', 'treemap', 'sunburst', 'funnel'].includes(t)) {
+    categoryCount = Math.max(2, Math.min(60, sliceLen || categoryCount));
+  } else if (t === 'candlestick' || t === 'boxplot') {
+    categoryCount = Math.max(2, Math.min(60, ohlcLen || catLen || categoryCount));
+  } else if (t === 'scatter' || t === 'bubble') {
+    categoryCount = Math.max(2, Math.min(60, pairLen || categoryCount));
+  } else if (t === 'gauge') {
+    categoryCount = 1;
+  } else {
+    categoryCount = Math.max(2, Math.min(60, catLen || firstSeriesPoints || categoryCount));
+  }
+
+  const seriesCount =
+    t === 'gauge' || ['pie', 'donut', 'rose', 'funnel'].includes(t)
+      ? 1
+      : Math.max(1, Math.min(5, seriesLen || current.seriesCount));
+
+  return {
+    ...current,
+    ...defaultEchartFor(t),
+    title: (payload.title || current.title).slice(0, 60),
+    categoryCount,
+    seriesCount,
+    showLegend: payload.showLegend !== false,
+    showLabels: payload.showLabels !== false,
+    gaugeValue: payload.value !== undefined ? payload.value : current.gaugeValue,
+    gaugeMax: payload.max !== undefined ? payload.max : current.gaugeMax,
+  };
+}
+
 function cats(n: number): string[] {
+  if (n > 12) {
+    return Array.from({ length: Math.max(2, Math.min(60, n)) }, (_, i) => `${i + 1}`);
+  }
   const names = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lambda', 'Mu'];
   return names.slice(0, Math.max(2, Math.min(12, n)));
 }
@@ -60,9 +103,10 @@ function sessionLabels(n: number): string[] {
 
 function series(count: number, points: number): Array<{ name: string; data: number[] }> {
   const labels = ['North', 'South', 'East', 'West', 'Core'];
+  const n = Math.max(2, Math.min(60, points));
   return Array.from({ length: Math.max(1, Math.min(5, count)) }, (_, s) => ({
     name: labels[s] || `Series ${s + 1}`,
-    data: Array.from({ length: points }, (_, i) => Math.round(18 + ((s + 1) * 11 + i * 7) % 57)),
+    data: Array.from({ length: n }, (_, i) => Math.round(18 + ((s + 1) * 11 + i * 7) % 57)),
   }));
 }
 
@@ -226,7 +270,16 @@ export function buildPayloadFromParams(
 
 export function detectStudioKind(text: string): StudioKind | null {
   const t = text.toLowerCase();
-  if (/\bsolar|planet|orbit|sun system|star system\b/.test(t)) return 'solar';
+  /* Dual-axis and other unsupported shapes must win over bare "bar" / "line" keywords. */
+  if (
+    /\bdual[-\s]?axis\b|\bsecondary axis\b|\bcombo chart\b|\boverlaid line\b|\bmixed (bar|column).*(line|curve)\b/i.test(
+      t
+    )
+  ) {
+    return null;
+  }
+  /* Planet / moon / orbit prompts are the D3 solar stage, not ECharts bars. */
+  if (looksLikeSolarPrompt(t)) return 'solar';
   for (const item of [...CHART_TYPES].sort((a, b) => b.label.length - a.label.length)) {
     const label = item.label.toLowerCase();
     if (t.includes(item.id.replace(/-/g, ' ')) || t.includes(label) || t.includes(item.id)) {
@@ -241,6 +294,17 @@ export function detectStudioKind(text: string): StudioKind | null {
   if (/\bfunnel\b/.test(t)) return 'funnel';
   if (/\bgauge\b/.test(t)) return 'gauge';
   return null;
+}
+
+export function looksLikeSolarPrompt(text: string): boolean {
+  const t = text.toLowerCase();
+  const solarCue = /\b(solar\s*system|star system|sun system|planets?|worlds?|moons?|orbits?)\b/.test(t);
+  if (!solarCue) return false;
+  /* Explicit data-chart wording is not the D3 solar stage. */
+  if (/\b(bar|line|pie|donut|radar|heatmap|funnel|gauge|scatter|bubble)\s+charts?\b/.test(t)) {
+    return false;
+  }
+  return true;
 }
 
 export function isStudioKind(value: string): value is StudioKind {

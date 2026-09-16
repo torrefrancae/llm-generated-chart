@@ -78,6 +78,25 @@ export function parseSolarPrompt(raw: string, current: SolarParams = DEFAULT_SOL
     notes.push('moons on');
   }
 
+  const moonsEach = text.match(/(\d+)\s*[-–to]+\s*(\d+)\s*moons?(?:\s+each)?/);
+  if (moonsEach) {
+    const a = clamp(Number(moonsEach[1]), 1, 8);
+    const b = clamp(Number(moonsEach[2]), 1, 8);
+    params.showMoons = true;
+    params.moonMin = Math.min(a, b);
+    params.moonMax = Math.max(a, b);
+    notes.push(`moons ${params.moonMin}-${params.moonMax} each`);
+  } else {
+    const moonsFixed = text.match(/(\d+)\s*moons?(?:\s+each)?/);
+    if (moonsFixed && !/\bno moons?/.test(text)) {
+      const n = clamp(Number(moonsFixed[1]), 1, 8);
+      params.showMoons = true;
+      params.moonMin = n;
+      params.moonMax = n;
+      notes.push(`${n} moons each`);
+    }
+  }
+
   if (/\bno trails?|without trails?|hide trails?\b/.test(text)) {
     params.showTrails = false;
     notes.push('trails off');
