@@ -26,6 +26,10 @@ export default function PromptDock({
 }: Props) {
   return (
     <div className={styles.dock}>
+      <div className={styles.head}>
+        <p className={styles.label}>Prompt box</p>
+        <p className={styles.hint}>Type below, or tap a sample</p>
+      </div>
       <div className={styles.samples} aria-label="Sample prompts">
         {samples.map((sample) => (
           <button key={sample} type="button" className={styles.chip} onClick={() => onSample(sample)} disabled={busy}>
@@ -41,6 +45,7 @@ export default function PromptDock({
         }}
       >
         <textarea
+          id="chart-prompt-input"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
