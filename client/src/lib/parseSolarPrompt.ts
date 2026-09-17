@@ -24,12 +24,20 @@ export function parseSolarPrompt(raw: string, current: SolarParams = DEFAULT_SOL
     return { params: current, summary: 'Empty prompt. Params unchanged.' };
   }
 
+  const wantsClassic =
+    /\b(correct|realistic|accurate|proper|real|true[-\s]?to[-\s]?life|classic|default|reset)\b/.test(
+      text
+    ) && /\b(solar|system|planets?|worlds?|sun)\b/.test(text);
+
   const preset = SOLAR_PRESETS.find(
     (item) => text.includes(item.id) || text.includes(item.label.toLowerCase())
   );
-  let params: SolarParams = { ...(preset ? preset.params : current) };
+  let params: SolarParams = {
+    ...(wantsClassic ? { ...DEFAULT_SOLAR } : preset ? preset.params : current),
+  };
   const notes: string[] = [];
-  if (preset) notes.push(`${preset.label} base`);
+  if (wantsClassic) notes.push('classic real-scale layout');
+  else if (preset) notes.push(`${preset.label} base`);
 
   const countMatch = text.match(/(\d+)\s*(planets?|worlds?|bodies)/);
   if (countMatch) {
@@ -113,9 +121,15 @@ export function parseSolarPrompt(raw: string, current: SolarParams = DEFAULT_SOL
     notes.push('labels on');
   }
 
-  if (/\bclassic\b/.test(text) && !preset) {
+  if (/\bclassic\b/.test(text) && !preset && !wantsClassic) {
     params = { ...DEFAULT_SOLAR };
     notes.push('classic sol');
+  }
+
+  /* Vague "make a solar system" with no knobs still lands on classic so Generate always does something. */
+  if (!notes.length && /\b(solar|system|planets?)\b/.test(text)) {
+    params = { ...DEFAULT_SOLAR };
+    notes.push('classic solar defaults');
   }
 
   return {

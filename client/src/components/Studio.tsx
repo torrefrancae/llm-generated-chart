@@ -43,6 +43,7 @@ export default function Studio() {
   const [notice, setNotice] = React.useState<ChartNotice | null>(null);
   const [partialAlert, setPartialAlert] = React.useState<PartialAlertState | null>(null);
   const [quota, setQuota] = React.useState<QuotaState>(() => readLocalQuota());
+  const [solarEpoch, setSolarEpoch] = React.useState(0);
   const requestId = React.useRef(0);
 
   React.useEffect(() => {
@@ -98,6 +99,8 @@ export default function Studio() {
       if (detectStudioKind(text) === 'solar' || local.kind === 'solar') {
         setKind('solar');
         setWaiting(false);
+        setNotice(null);
+        setSolarEpoch((n) => n + 1);
         setStatus(local.summary || 'Solar system ready.');
         applyPartial(
           [...collectPromptExtraWarnings(text), ...collectSolarCapWarnings(text)],
@@ -134,6 +137,7 @@ export default function Studio() {
         if (outcome.kind === 'solar') {
           setKind('solar');
           setPayload(null);
+          setSolarEpoch((n) => n + 1);
           setStatus(outcome.reply || local.summary || 'Solar system ready.');
           applyPartial(
             [
@@ -222,7 +226,7 @@ export default function Studio() {
             ) : waiting ? (
               <ChartCanvas payload={null} busy />
             ) : kind === 'solar' ? (
-              <SolarSystemChart params={solar} />
+              <SolarSystemChart key={solarEpoch} params={solar} />
             ) : (
               <ChartCanvas payload={payloadHasData(payload) ? payload : null} busy={false} />
             )}

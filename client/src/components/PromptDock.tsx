@@ -29,14 +29,14 @@ export default function PromptDock({
   onSubmit,
   onSample,
 }: Props) {
-  const locked = Boolean(busy || spent);
+  const canSubmit = Boolean(value.trim()) && !busy;
   return (
     <div className={styles.dock}>
       <div className={styles.head}>
         <p className={styles.label}>Prompt box</p>
         <p className={styles.quota} aria-live="polite">
           {spent
-            ? `All ${quota.max} LLM generates used`
+            ? `All ${quota.max} LLM generates used - solar prompts still work`
             : `${quota.left} of ${quota.max} LLM generates left`}
         </p>
       </div>
@@ -47,12 +47,13 @@ export default function PromptDock({
       </div>
       {spent ? (
         <p className={styles.spent}>
-          Chart generation is paused for this visitor. Solar presets still work. Come back later for more LLM charts.
+          LLM chart generation is paused for this visitor. You can still run solar system prompts anytime.
+          Come back later for more LLM charts.
         </p>
       ) : null}
       <div className={styles.samples} aria-label="Sample prompts">
         {samples.map((sample) => (
-          <button key={sample} type="button" className={styles.chip} onClick={() => onSample(sample)} disabled={locked}>
+          <button key={sample} type="button" className={styles.chip} onClick={() => onSample(sample)} disabled={busy}>
             {sample}
           </button>
         ))}
@@ -61,7 +62,7 @@ export default function PromptDock({
         className={styles.form}
         onSubmit={(e) => {
           e.preventDefault();
-          if (locked) return;
+          if (!canSubmit) return;
           onSubmit(value);
         }}
       >
@@ -69,13 +70,17 @@ export default function PromptDock({
           id="chart-prompt-input"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={spent ? 'LLM generate limit reached for now' : placeholder}
+          placeholder={
+            spent
+              ? 'Solar still works, e.g. correct solar system with moons and labels'
+              : placeholder
+          }
           aria-label="Chart prompt"
-          disabled={locked}
+          disabled={busy}
           rows={3}
         />
-        <button type="submit" disabled={locked || !value.trim()}>
-          {busy ? 'Working...' : spent ? 'Limit reached' : submitLabel}
+        <button type="submit" disabled={!canSubmit}>
+          {busy ? 'Working...' : submitLabel}
         </button>
       </form>
       {status ? <p className={styles.status}>{status}</p> : null}
