@@ -13,11 +13,17 @@
 
 .hero {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
   padding: 0 2px;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
 }
 
 .brand {
@@ -39,6 +45,28 @@
   line-height: 1.35;
   max-width: 46ch;
 }
+
+.github {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #30363d;
+  background: #f0f6fc;
+  color: #0d1117;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.github:hover {
+  filter: brightness(0.96);
+}
+
 
 .workspace {
   display: grid;
