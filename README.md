@@ -42,11 +42,18 @@ npm run dev
 
 ## Keys
 
-Put Cursor keys in `../../sh/.env.cursor` or `.env`:
+Do **not** put secrets in the repo root or under `public_html`.
+
+Create a private env file outside the checkout, then either export `CHART_ENV_FILE` or use one of the default locations:
+
+- `~/.config/etorrefranca4-chart/env`
+- `~/etorrefranca4-secrets/chart.env`
 
 ```bash
-API_KEY1=...
-# or CURSOR_API_KEY=...
+mkdir -p ~/.config/etorrefranca4-chart
+cp .env.example ~/.config/etorrefranca4-chart/env
+chmod 600 ~/.config/etorrefranca4-chart/env
+# edit that file and set API_KEY1 / CURSOR_API_KEY
 ```
 
 ## Hosting notes

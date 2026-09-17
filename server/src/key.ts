@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 function applyEnvFile(file: string): void {
@@ -14,16 +15,26 @@ function applyEnvFile(file: string): void {
   }
 }
 
-export function applyChartEnv(): void {
-  const candidates = [
-    path.resolve(__dirname, '../.env'),
-    path.resolve(__dirname, '../../.env'),
-    path.resolve(process.cwd(), '.env'),
-    path.resolve(__dirname, '../../../../sh/.env.cursor'),
-    path.resolve(process.cwd(), '../../sh/.env.cursor'),
-    path.resolve(process.cwd(), '../sh/.env.cursor'),
+function homeSecretCandidates(): string[] {
+  const home = process.env.HOME || os.homedir();
+  if (!home) return [];
+  return [
+    path.join(home, '.config', 'etorrefranca4-chart', 'env'),
+    path.join(home, 'etorrefranca4-secrets', 'chart.env'),
   ];
-  for (const file of candidates) applyEnvFile(file);
+}
+
+/**
+ * Load secrets from outside the app tree only.
+ * Prefer CHART_ENV_FILE, then ~/.config/etorrefranca4-chart/env, then ~/etorrefranca4-secrets/chart.env.
+ * Never read or mention repo-relative secret paths from source.
+ */
+export function applyChartEnv(): void {
+  const ordered: string[] = [];
+  const explicit = (process.env.CHART_ENV_FILE || '').trim();
+  if (explicit) ordered.push(path.resolve(explicit));
+  ordered.push(...homeSecretCandidates());
+  for (const file of ordered) applyEnvFile(file);
 }
 
 export function chartKeys(): string[] {
